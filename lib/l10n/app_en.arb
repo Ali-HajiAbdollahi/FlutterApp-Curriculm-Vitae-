@@ -1,0 +1,15 @@
+{
+    "title":"Curriculm Vitae",
+    "name":"Ali HajiAbdollahi",
+    "job":"Front-End Developer",
+    "location":"Karaj, IRAN",
+    "description":"As a computer engineer, I learned Java in university and self-taught React.js. I gained experience as a developer before pursuing courses in deep learning and artificial intelligence.",
+    "selectedLanguage":"Selected Language",
+    "english":"English",
+    "persian":"Persian",
+    "skill":"Skills",
+    "personalInformaion":"Personal Informaion",
+    "email":"Email",
+    "password":"Password",
+    "save":"Save"
+}

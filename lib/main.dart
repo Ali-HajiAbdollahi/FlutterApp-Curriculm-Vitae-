@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,22 +19,22 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.dark;
+  Locale _locale = Locale('en');
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       localizationsDelegates: [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
-        Locale('en'), // English
-        Locale('es'), // Spanish
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: _locale,
       theme: _themeMode == ThemeMode.dark
-          ? MyThemeConfig.dark().myThemeData()
-          : MyThemeConfig.light().myThemeData(),
+          ? MyThemeConfig.dark().myThemeData(_locale.languageCode)
+          : MyThemeConfig.light().myThemeData(_locale.languageCode),
       home: MyHomePage(
         toggleThemeMode: () {
           setState(() {
@@ -44,12 +45,18 @@ class _MyAppState extends State<MyApp> {
             }
           });
         },
+        changeLocaleLanguage: (value) {
+          setState(() {
+            _locale = value == _LocaleType.en ? Locale('en') : Locale('fa');
+          });
+        },
       ),
     );
   }
 }
 
 class MyThemeConfig {
+  static const String faPrimaryFontFamily = 'BNazanin';
   final Color primaryColor = Colors.pink.shade400;
   final Color primaryTextColor;
   final Color secondaryTextColor;
@@ -83,7 +90,7 @@ class MyThemeConfig {
         appBarColor = Color.fromARGB(255, 235, 235, 235),
         brightness = Brightness.light;
 
-  ThemeData myThemeData() {
+  ThemeData myThemeData(String languageCode) {
     return ThemeData(
         // This is the theme of your application.
         //
@@ -108,12 +115,7 @@ class MyThemeConfig {
         brightness: brightness,
         scaffoldBackgroundColor: backGroundColor,
         appBarTheme: AppBarTheme(backgroundColor: appBarColor),
-        textTheme: GoogleFonts.latoTextTheme(TextTheme(
-          bodyText2: TextStyle(fontSize: 15),
-          bodyText1: TextStyle(fontSize: 13, color: primaryTextColor),
-          headline6: TextStyle(fontWeight: FontWeight.bold),
-          subtitle1: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        )),
+        textTheme: languageCode == 'en' ? enFontDataConfig : faFontDateConfig,
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -122,18 +124,46 @@ class MyThemeConfig {
           fillColor: surfaceColor,
         ));
   }
+
+  TextTheme get enFontDataConfig => GoogleFonts.latoTextTheme(TextTheme(
+        bodyText2: TextStyle(fontSize: 15),
+        bodyText1: TextStyle(fontSize: 13, color: primaryTextColor),
+        headline6: TextStyle(fontWeight: FontWeight.bold),
+        subtitle1: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ));
+
+  TextTheme get faFontDateConfig => TextTheme(
+        bodyText2: TextStyle(fontSize: 15, fontFamily: faPrimaryFontFamily),
+        bodyText1: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            height: 1.5,
+            color: primaryTextColor,
+            fontFamily: faPrimaryFontFamily),
+        headline6: TextStyle(
+            fontWeight: FontWeight.bold, fontFamily: faPrimaryFontFamily),
+        subtitle1: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            fontFamily: faPrimaryFontFamily),
+      );
 }
 
 class MyHomePage extends StatefulWidget {
   final Function() toggleThemeMode;
+  final Function(_LocaleType value) changeLocaleLanguage;
 
-  const MyHomePage({super.key, required this.toggleThemeMode});
+  const MyHomePage(
+      {super.key,
+      required this.toggleThemeMode,
+      required this.changeLocaleLanguage});
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   _SkillsType? _skill;
+  _LocaleType _localeType = _LocaleType.en;
 
   void updateSelectedSkill(_SkillsType skillType) {
     setState(() {
@@ -141,11 +171,19 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void updateLocale(_LocaleType value) {
+    widget.changeLocaleLanguage(value);
+    setState(() {
+      _localeType = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final localization = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Curriculm Vitae'),
+        title: Text(localization.title),
         actions: [
           Icon(CupertinoIcons.chat_bubble),
           InkWell(
@@ -182,13 +220,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Ali HajiAbdollahi',
+                        localization.name,
                         style: Theme.of(context).textTheme.subtitle1,
                       ),
                       SizedBox(
                         height: 2,
                       ),
-                      Text('Front-End Developer'),
+                      Text(localization.job),
                       SizedBox(
                         height: 8,
                       ),
@@ -203,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             width: 3,
                           ),
                           Text(
-                            'Karaj, IRAN',
+                            localization.location,
                             style: Theme.of(context).textTheme.caption,
                           )
                         ],
@@ -221,8 +259,40 @@ class _MyHomePageState extends State<MyHomePage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
             child: Text(
-              'As a computer engineer, I learned Java in university and self-taught React.js. I gained experience as a developer before pursuing courses in deep learning and artificial intelligence.',
+              localization.description,
               style: Theme.of(context).textTheme.bodyText1,
+            ),
+          ),
+          Divider(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(32, 16, 32, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  localization.selectedLanguage,
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                CupertinoSegmentedControl<_LocaleType>(
+                    groupValue: _localeType,
+                    children: {
+                      _LocaleType.en: Container(
+                          margin: EdgeInsets.all(5),
+                          child: Text(
+                            localization.english,
+                            style: TextStyle(fontSize: 16),
+                          )),
+                      _LocaleType.fa: Container(
+                          margin: EdgeInsets.all(5),
+                          child: Text(
+                            localization.persian,
+                            style: TextStyle(fontSize: 16),
+                          )),
+                    },
+                    onValueChanged: (value) {
+                      updateLocale(value);
+                    })
+              ],
             ),
           ),
           Divider(),
@@ -232,7 +302,7 @@ class _MyHomePageState extends State<MyHomePage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Skills',
+                  localization.skill,
                   style: Theme.of(context)
                       .textTheme
                       .bodyText2!
@@ -314,7 +384,7 @@ class _MyHomePageState extends State<MyHomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Personal Information',
+                  localization.personalInformaion,
                   style: Theme.of(context)
                       .textTheme
                       .bodyText2!
@@ -325,14 +395,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 TextField(
                   decoration: InputDecoration(
-                      labelText: 'Email', prefixIcon: Icon(CupertinoIcons.at)),
+                      labelText: localization.email,
+                      prefixIcon: Icon(CupertinoIcons.at)),
                 ),
                 SizedBox(
                   height: 8,
                 ),
                 TextField(
                   decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: localization.password,
                       prefixIcon: Icon(CupertinoIcons.lock)),
                 ),
                 SizedBox(
@@ -341,7 +412,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(
                   width: double.infinity,
                   height: 48,
-                  child: ElevatedButton(onPressed: () {}, child: Text('Save')),
+                  child: ElevatedButton(
+                      onPressed: () {}, child: Text(localization.save)),
                 )
               ],
             ),
@@ -421,4 +493,9 @@ enum _SkillsType {
   illustrator,
   afterEffect,
   lightRoom,
+}
+
+enum _LocaleType {
+  en,
+  fa,
 }
